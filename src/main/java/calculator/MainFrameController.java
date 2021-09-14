@@ -75,14 +75,21 @@ public class MainFrameController {
     @FXML
     private Button equallyId;
 
-    /** номер индекса в массиве значений*/
+    /**
+     * номер индекса в массиве значений
+     */
     private int countElement = 0;
-    /** массив хранит введенные значения*/
+    /**
+     * массив хранит введенные значения
+     */
     private List<String> elements = new ArrayList<>();
     private String text = "";
     private String result = "";
 
     private boolean sign = false;
+
+    int tStart;
+    int tEnd;
 
 
     @FXML
@@ -107,7 +114,11 @@ public class MainFrameController {
     }
 
     private void clear(ActionEvent e) {
-
+        textId.clear();
+        resultId.setText("");
+        text = "";
+        tStart = 0;
+        tEnd = 0;
     }
 
     private void btncode(ActionEvent e) {
@@ -120,9 +131,14 @@ public class MainFrameController {
         if (e.getSource() == threeId) buttonNumbers("3");
         if (e.getSource() == twoId) buttonNumbers("2");
         if (e.getSource() == oneId) buttonNumbers("1");
-        if (e.getSource() == zeroId) buttonNumbers("0");
+        if (e.getSource() == zeroId) { //todo сделать проверку деление на 0 и 0 в начале строки
+//            int i = text.indexOf(text.length()-2);
+//            String t = String.valueOf(text.charAt(i));
+//            if(!t.equals("/"))
+                buttonNumbers("0");
+        }
 
-        if (e.getSource() == minusId) signPut("-");
+        if (e.getSource() == minusId) signPut("-"); //todo минус вначале может означать отрицательное число и после другого знака
         if (!text.isEmpty()) {
             if (e.getSource() == shareId) signPut("/");
             if (e.getSource() == multiplyId) signPut("*");
@@ -140,133 +156,158 @@ public class MainFrameController {
         resultId.setText(decimalFormat.format(Double.parseDouble(parsString(text))));
     }
 
-    /** Парсер строки
+    /**
+     * Парсер строки
      *
      * @param text
-     * @return*/
+     * @return
+     */
     private String parsString(String text) {
-         String count = text.trim();
-         System.err.println(count);
+        String count = text.trim();
+        System.err.println(count);
 
-         while (true) {
-             System.err.println("Начало " + count);
-             if (count.contains("/") || count.contains("*")) {
-                 if (count.contains("/")) {
-                     int tIndex = count.indexOf("/");
-                     System.err.println("Индекс знака деления ----- " + tIndex);
+        while (true) {
+            System.err.println("Начало " + count);
+            if (count.contains("/") || count.contains("*")) {
+                if (count.contains("/")) {
+                    int tIndex = count.indexOf("/");
 
-                     int tEnd;
-                     int tStart;
-                     int delitel = 0;
+                    double delimoe = firstVariable(tIndex, count);
+                    double delitel = secondVariable(tIndex, count);
 
-                    //Поиск индекса конца числа после арифметического знака
-                     for (tEnd = tIndex + 1; tEnd < count.length(); tEnd++) {
-                         System.err.println("Длина строки " + count.length() + " ");
+                    if (delitel != 0) result = String.valueOf(delimoe / delitel);
+                    else result = String.valueOf(delimoe);
 
-//                         tEnd = tIndex + i + count.substring(tIndex + i).length();
-//                         System.err.println(Character.isDigit(Integer.parseInt(String.valueOf((count.charAt(tIndex+i)))))
-//                                 + " " +Integer.parseInt(String.valueOf((count.charAt(tIndex+i)))));
+                    count = count.replace(count.substring(tStart + 1, tEnd), result);
+                }else{
+                    /* Умножение */
+                    int tIndex = count.indexOf("*");
 
-//                         if (!Character.isDigit(Integer.parseInt(String.valueOf(count.charAt(tEnd))))) {
-//                         if (!Character.isDigit((count.charAt(tEnd)))) {
-                         if (!isInteger((String.valueOf((count.charAt(tEnd)))))) {
-                             System.err.println("ЧИСЛО " + count.charAt(tEnd-1) );
+                    double value1 = firstVariable(tIndex, count);
+                    double value2 = secondVariable(tIndex, count);
 
-//                         if ((String.valueOf(count.charAt(tIndex+i))).equals("/") ||
-//                                 (String.valueOf(count.charAt(tIndex+i))).equals(System.getProperty("line.separator"))) {
+                    result = String.valueOf(value1 * value2);
 
-//                         if(!Character.isDigit(Integer.parseInt((count.valueOf(tIndex + i))))){
-                             System.err.println("НЕ ЧИСЛО " + count.charAt(tEnd) + " " + tEnd);
-
-//                             tEnd = tIndex + i + count.substring(tIndex + i).length();
-//                             tEnd = tIndex + i ;
-                             // Индекс конца делителя todo нийти конец делителя
-
-                             System.err.println("Индекс конца делителя " + (tEnd));
-//                             System.err.println("Длина делителя " + count.substring(tIndex, tEnd).length());
-
-                             delitel = Integer.parseInt((count.substring(tIndex + 1, tEnd)));
-                             System.err.println("Делитель " + delitel);
-
-                             System.err.println("Индекс конца делителя " + tEnd + " " +  delitel);
-//                                     + count.substring(tIndex +1, tEnd +count.substring(tIndex + 1).length() - 1));
-
-                             break;
-                         }
-                         else{
-                             delitel = Integer.parseInt((count.substring(tIndex + 1, tEnd+1)));
-//                             System.err.println("Конец строки, индекс " + tEnd + " Число "  + count.charAt(tEnd));
-                             System.err.println("Конец строки, индекс " + tEnd + " Число "  + count.substring(tIndex + 1, tEnd+1));
-                         }
-                     }
-                     System.err.println("Цикл конец ===============================================");
-
-                     //Поиск индекса начала числа до арифметического знака
-                     for (int i = 0;;i++) {
-//                         if (!Character.isDigit(Integer.parseInt((count.substring(0, tIndex - i))))) {
-                         if(!Character.isDigit((count.charAt(tIndex - i)))){
-                             tStart = tIndex - count.substring(0, tIndex - i).length();
-                             System.err.println("tStart " + tStart + " " + count.substring(tStart, tIndex));
-                             break;
-                         }
-                     }
-
-                     System.err.println("Индекс начала делимого " + tStart + "   " + count.substring(tStart, tIndex) );
-
-
-//                     int tEnd = count.substring(tIndex).lastIndexOf("");
-//                    int t = count.substring(tIndex).lastIndexOf(" ");
-//                    tStart = count.substring(0, tIndex).lastIndexOf(" ");
-
-
-
-//                    System.err.println(Integer.parseInt(count.substring(tIndex+1, tEnd)));
-                     if(delitel!=0) result = String.valueOf(Double.parseDouble(count.substring(tStart, tIndex)) / delitel);
-                     else result = String.valueOf(Double.parseDouble(count.substring(tStart, tIndex)));
-
-                    System.err.println("result " + result);
-
-                     String formattedString = count.replace(count.substring(tStart, tEnd), result);
-                     count = formattedString;
-
-//                 System.err.println("count.substring(tStart, tEnd) " + count.substring(tStart, tEnd));
-                 System.err.println("Обработка строчки " + count);
-                 System.err.println("formattedString " + formattedString);
-
-
-
-                    //            String[] words = text.split(" + ");
-
-
-
-
-//                    System.err.println(tDelStart);
-
-//                    String first = count.substring(tDelStart, tIndex);//todo
-//                    String second = count.substring(Integer.parseInt(count.substring(tIndex+3, tDelEnd)));
-
-//                    System.err.println("first " + first);
-//                    System.err.println("second " + second);
-//                    count = "";
-
-//                    System.err.println("Деление " + count);
-
-
-                } else {
-
+                    count = count.replace(count.substring(tStart + 1, tEnd), result);
                 }
-            } else if (this.text.contains("+") || this.text.contains("-")) {
+            } else if (count.contains("+") || count.contains("-")) {
+                if (count.contains("+")) {
+                    int tIndex = count.indexOf("+");
 
-            }
-             else {
+                    double value1 = firstVariable(tIndex, count);
+                    double value2 = secondVariable(tIndex, count);
+
+                    result = String.valueOf(value1 + value2);
+
+                    count = count.replace(count.substring(tStart + 1, tEnd), result);
+                } else{
+                    int tIndex = count.indexOf("-");
+                    System.err.println("tIndex " + tIndex );
+
+                    if(tIndex == 0){
+//                        count = count.replace(count.substring(tStart, tEnd), result);
+
+//                        if(isInteger(count))
+//                        double value1 = secondVariable(tIndex, count);
+//                        System.err.println(value1);
+
+                            return count;
+//                        else{}   //todo -6-3 выдает ошибку если два отрицательных числа, сделать решение
+                    }else{
+                        double value1 = firstVariable(tIndex, count);
+                        double value2 = secondVariable(tIndex, count);
+
+                        System.err.println("            " + value1 + " " + value2);
+
+//                        if(value1 >value2)
+
+                        if(value2<0) result = String.valueOf(value1 - Math.abs(value2));
+                        else result = String.valueOf(value1 - value2);
+
+                        System.err.println(tStart + " " + tEnd);
+                        count = count.replace(count.substring(tStart + 1, tEnd), result);
+                    }
+                }
+            } else {
                 System.err.println("конец " + count);
-                 System.err.println();
+                System.err.println();
                 return count;
             }
         }
     }
 
-    /** Проверка выбора знака */
+    /**
+     * Поиск числа после арифметического знака
+     *
+     * @param tIndex
+     * @param count
+     */
+    private double secondVariable(int tIndex, String count) {
+        double variable = 0;
+        for (tEnd = tIndex + 1; tEnd < count.length(); tEnd++) {
+            System.err.println("Длина строки " + count.length() + " ");
+
+
+                if (!isInteger((String.valueOf((count.charAt(tEnd)))))) {
+                    if(String.valueOf((count.charAt(tIndex + 1))).equals("-")){ // todo Проверить
+                        tEnd++;
+                        System.err.println("СЛЕДУЮЩИЙ ММИНУС");
+                    }else {
+                        System.err.println("ЧИСЛО " + count.charAt(tEnd - 1));
+
+                        System.err.println("НЕ ЧИСЛО " + count.charAt(tEnd) + " " + tEnd);
+
+                        System.err.println("Индекс конца делителя " + (tEnd));
+
+                        variable = Double.parseDouble((((count.substring(tIndex + 1, tEnd)))));
+                        System.err.println("Делитель " + variable);
+
+                        System.err.println("Индекс конца делителя " + tEnd + " " + variable);
+
+                        break;
+                    }
+                } else {
+                    variable = Double.parseDouble((((count.substring(tIndex + 1, tEnd + 1)))));
+                    System.err.println("Конец строки, индекс " + tEnd + " Число " + count.substring(tIndex + 1, tEnd + 1));
+                }
+
+        }
+        return variable;
+    }
+
+    private double firstVariable(int tIndex, String count) {
+        double variable = 0;
+
+        //Поиск индекса начала числа до арифметического знака
+        System.err.println("-------------------------------- " + tIndex);
+        for (tStart = tIndex - 1; tStart >= 0; tStart--) {
+
+            System.err.println("Вход " + String.valueOf(count.charAt(tStart)));
+
+                if (isInteger(String.valueOf(count.charAt(tStart)))) {
+                    variable = Double.parseDouble(count.substring(tStart, tIndex));
+
+                } else {
+                    if(String.valueOf(count.charAt(tStart)).equals("-")) {
+//                        variable = Double.parseDouble(count.substring(tStart, tIndex));
+                        variable = Double.parseDouble(count.substring(tStart+1, tIndex)); // todo Проверить
+                        System.err.println("Индекс начала ===== " + tStart  + " " + count.substring(tStart, tIndex));
+
+                        break;
+                    }else {
+                        variable = Double.parseDouble(count.substring(tStart + 1, tIndex));
+
+                        System.err.println("Индекс начала делимого " + tStart + "   " + count.substring(tStart, tIndex));
+                        break;
+                    }
+                }
+        }
+        return variable;
+    }
+
+    /**
+     * Проверка выбора знака
+     */
     private void signPut(String s) {
         if (sign) {
             text = text.substring(0, text.length() - 1);
@@ -275,22 +316,22 @@ public class MainFrameController {
         sign = true;
     }
 
-    /** Проверка является ли элемент строки числом */
+    /**
+     * Проверка является ли элемент строки числом
+     */
     public static boolean isInteger(String s) {
 
-        if(s == null || s.equals("")) {
-            return false;
-        }
+        if (s == null || s.equals("")) return false;
+
+        if (s.equals(".")) return true;
 
         try {
             int iVal = Integer.parseInt(s);
             return true;
-        }
-        catch(NumberFormatException e) {
-             /*ignore, System.out.println(e.getMessage());*/
+        } catch (NumberFormatException e) {
+            /*ignore, System.out.println(e.getMessage());*/
         }
         return false;
     }
-
 }
 
