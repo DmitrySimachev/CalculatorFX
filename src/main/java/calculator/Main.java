@@ -16,6 +16,9 @@ public class Main extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader();
         fxmlLoader.setLocation(getClass().getResource("/fxml/MainFrame.fxml"));
         Parent root = fxmlLoader.load();
+        MainFrameController controller = fxmlLoader.getController();
+        controller.setDB(db);
+
         primaryStage.setTitle("Калькулятор");
         primaryStage.setOnCloseRequest(e -> db.close());
         primaryStage.setScene(new Scene(root, 400, 600));

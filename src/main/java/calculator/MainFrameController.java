@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.AnchorPane;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -14,6 +15,9 @@ public class MainFrameController {
 
     @FXML
     private Button historyId;
+
+    @FXML
+    private AnchorPane root;
 
     @FXML
     private TextArea textId;
@@ -84,6 +88,7 @@ public class MainFrameController {
      */
     private List<String> elements = new ArrayList<>();
     private String text = "";
+    private String resultText;
     private String result = "";
 
     private boolean sign = false;
@@ -91,10 +96,20 @@ public class MainFrameController {
     int tStart;
     int tEnd;
 
+    DBInitialize db;
+    PaneData paneData;
+
+    boolean paneDataVisible = true;
+
+
+
 
     @FXML
     private void initialize() {
-        clearId.setOnAction(this::clear);
+        clearId.setOnAction(e -> {
+            clear(e);
+            resultId.setText("");
+        });
 
         nineId.setOnAction(this::btncode);
         eightId.setOnAction(this::btncode);
@@ -107,15 +122,48 @@ public class MainFrameController {
         oneId.setOnAction(this::btncode);
         zeroId.setOnAction(this::btncode);
 
+        rootNumberId.setOnAction(this::btncode);
+
         shareId.setOnAction(this::btncode);
         multiplyId.setOnAction(this::btncode);
         minusId.setOnAction(this::btncode);
         plusId.setOnAction(this::btncode);
+
+        historyId.setOnAction(this::selectTable);
+        equallyId.setOnAction(this::addTable);
+    }
+
+    private void addTable(ActionEvent actionEvent) {
+        root.getChildren().remove(paneData);
+        paneDataVisible = true;
+        db.insertTable(textId.getText(), resultText);
+        clear(actionEvent);
+    }
+
+    private void selectTable(ActionEvent actionEvent) {
+        if(paneDataVisible){
+            List<String> stringList = db.selectTable();
+
+            paneData = new PaneData(stringList);
+            AnchorPane anchorPane = paneData.show();
+            AnchorPane.setTopAnchor(anchorPane, 125.0);
+            AnchorPane.setRightAnchor(anchorPane, 100.0);
+            AnchorPane.setLeftAnchor(anchorPane, 0.0);
+            AnchorPane.setBottomAnchor(anchorPane, 0.0);
+            root.getChildren().add(anchorPane);
+            anchorPane.toFront();
+
+//            paneData.show();
+            paneDataVisible = false;
+        }else {
+//            paneData.hide();
+            root.getChildren().remove(paneData);
+            paneDataVisible = true;
+        }
     }
 
     private void clear(ActionEvent e) {
         textId.clear();
-        resultId.setText("");
         text = "";
         tStart = 0;
         tEnd = 0;
@@ -153,7 +201,9 @@ public class MainFrameController {
         sign = false;
 
         DecimalFormat decimalFormat = new DecimalFormat("#.#####");
-        resultId.setText(decimalFormat.format(Double.parseDouble(parsString(text))));
+        String str = parsString(text);
+        resultText = str;
+        resultId.setText(decimalFormat.format(Double.parseDouble(str)));
     }
 
     /**
@@ -163,45 +213,45 @@ public class MainFrameController {
      * @return
      */
     private String parsString(String text) {
-        String count = text.trim();
-        System.err.println(count);
+        String strOperation = text.trim();
+        System.err.println(strOperation);
 
         while (true) {
-            System.err.println("Начало " + count);
-            if (count.contains("/") || count.contains("*")) {
-                if (count.contains("/")) {
-                    int tIndex = count.indexOf("/");
+            System.err.println("Начало " + strOperation);
+            if (strOperation.contains("/") || strOperation.contains("*")) {
+                if (strOperation.contains("/")) {
+                    int tIndex = strOperation.indexOf("/");
 
-                    double delimoe = firstVariable(tIndex, count);
-                    double delitel = secondVariable(tIndex, count);
+                    double delimoe = firstVariable(tIndex, strOperation);
+                    double delitel = secondVariable(tIndex, strOperation);
 
                     if (delitel != 0) result = String.valueOf(delimoe / delitel);
                     else result = String.valueOf(delimoe);
 
-                    count = count.replace(count.substring(tStart + 1, tEnd), result);
+                    strOperation = strOperation.replace(strOperation.substring(tStart + 1, tEnd), result);
                 }else{
                     /* Умножение */
-                    int tIndex = count.indexOf("*");
+                    int tIndex = strOperation.indexOf("*");
 
-                    double value1 = firstVariable(tIndex, count);
-                    double value2 = secondVariable(tIndex, count);
+                    double value1 = firstVariable(tIndex, strOperation);
+                    double value2 = secondVariable(tIndex, strOperation);
 
                     result = String.valueOf(value1 * value2);
 
-                    count = count.replace(count.substring(tStart + 1, tEnd), result);
+                    strOperation = strOperation.replace(strOperation.substring(tStart + 1, tEnd), result);
                 }
-            } else if (count.contains("+") || count.contains("-")) {
-                if (count.contains("+")) {
-                    int tIndex = count.indexOf("+");
+            } else if (strOperation.contains("+") || strOperation.contains("-")) {
+                if (strOperation.contains("+")) {
+                    int tIndex = strOperation.indexOf("+");
 
-                    double value1 = firstVariable(tIndex, count);
-                    double value2 = secondVariable(tIndex, count);
+                    double value1 = firstVariable(tIndex, strOperation);
+                    double value2 = secondVariable(tIndex, strOperation);
 
                     result = String.valueOf(value1 + value2);
 
-                    count = count.replace(count.substring(tStart + 1, tEnd), result);
+                    strOperation = strOperation.replace(strOperation.substring(tStart + 1, tEnd), result);
                 } else{
-                    int tIndex = count.indexOf("-");
+                    int tIndex = strOperation.indexOf("-");
                     System.err.println("tIndex " + tIndex );
 
                     if(tIndex == 0){
@@ -211,11 +261,11 @@ public class MainFrameController {
 //                        double value1 = secondVariable(tIndex, count);
 //                        System.err.println(value1);
 
-                            return count;
+                            return strOperation;
 //                        else{}   //todo -6-3 выдает ошибку если два отрицательных числа, сделать решение
                     }else{
-                        double value1 = firstVariable(tIndex, count);
-                        double value2 = secondVariable(tIndex, count);
+                        double value1 = firstVariable(tIndex, strOperation);
+                        double value2 = secondVariable(tIndex, strOperation);
 
                         System.err.println("            " + value1 + " " + value2);
 
@@ -225,13 +275,13 @@ public class MainFrameController {
                         else result = String.valueOf(value1 - value2);
 
                         System.err.println(tStart + " " + tEnd);
-                        count = count.replace(count.substring(tStart + 1, tEnd), result);
+                        strOperation = strOperation.replace(strOperation.substring(tStart + 1, tEnd), result);
                     }
                 }
             } else {
-                System.err.println("конец " + count);
+                System.err.println("конец " + strOperation);
                 System.err.println();
-                return count;
+                return strOperation;
             }
         }
     }
@@ -332,6 +382,10 @@ public class MainFrameController {
             /*ignore, System.out.println(e.getMessage());*/
         }
         return false;
+    }
+
+    public void setDB(DBInitialize db) {
+        this.db = db;
     }
 }
 

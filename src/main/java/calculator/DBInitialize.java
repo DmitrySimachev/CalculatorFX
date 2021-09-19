@@ -1,6 +1,9 @@
 package calculator;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DBInitialize {
 
@@ -65,7 +68,7 @@ public class DBInitialize {
                 stmt = connection.createStatement();
                 sql = "CREATE TABLE OPERATION " +
                         "(ID          INT PRIMARY KEY   NOT NULL," +
-                        " OPERATION   TEXT              NOT NULL, " +
+                        " OPERATION   VARBINARY              NOT NULL, " +
                         " RESULT      INT)";
                 stmt.executeUpdate(sql);
                 stmt.close();
@@ -76,5 +79,67 @@ public class DBInitialize {
 
             e.printStackTrace();
         }
+    }
+
+    public void insertTable(String strOperation, String resultText){
+        try {
+            stmt = connection.createStatement();
+            System.err.println(strOperation);
+
+//            char[] ch = strOperation.toCharArray();
+
+            ResultSet rs = stmt.executeQuery("SELECT count(*) FROM OPERATION;");
+            rs.next();
+            int countRows = rs.getInt("count(*)");
+            int count = 5;
+            if(countRows == count){
+                System.err.println("Удалить первое");
+                sql = "DELETE from OPERATION where ID=1;";
+                stmt.executeUpdate(sql);
+                System.err.println("Изменить индексы");
+                int i = 2;
+                while (i<=count){
+                    sql = "UPDATE OPERATION set ID = " + (i-1) +"  where ID=" + (i) + ";";
+                    stmt.executeUpdate(sql);
+                    i++;
+                }
+                System.err.println("Записать новое " + strOperation);
+                sql = "INSERT INTO OPERATION (ID,OPERATION,RESULT) VALUES (" + count + ", " + "'" + strOperation + "'"+ ", " + resultText + " );";
+                System.err.println(sql);
+            }else {
+                sql = "INSERT INTO OPERATION (ID,OPERATION,RESULT) VALUES (" +
+                        (countRows + 1) + ", " + "'" + strOperation + "'"+  ", " + resultText + " );";
+            }
+
+
+            System.err.println(strOperation);
+
+            stmt.executeUpdate(sql);
+            stmt.close();
+            connection.commit();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public List<String> selectTable(){
+        List<String> stringList = new LinkedList<>();
+        try {
+            stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT * FROM OPERATION;");
+            while (rs.next()) {
+                int id = rs.getInt("ID");
+                String operation = rs.getString("OPERATION");
+                int RESULT = rs.getInt("RESULT");
+                System.out.println(String.format("ID=%s OPERATION=%s RESULT=%s", id, operation, RESULT));
+                stringList.add(operation);
+            }
+            rs.close();
+            stmt.close();
+            connection.commit();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return stringList;
     }
 }
